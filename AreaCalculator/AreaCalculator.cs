@@ -1,6 +1,6 @@
 ﻿namespace AreaCalculator;
 
-public interface IFigure // абстракция, расширяемая библиотека: (новую фигуру можно добавить, не меняя базовый код библиотеки)
+public interface IFigure // абстракция - расширяемая библиотека (новую фигуру можно добавить, не меняя базовый код библиотеки)
 {
     public double GetArea();
     public string ToString();
@@ -10,10 +10,13 @@ public interface IFigure // абстракция, расширяемая биб�
 public class Circle : IFigure // тип фигуры определяется явно
 {
     private readonly double _radius;
+    public double Radius => _radius;
     public Circle( double radius )
     {
-        if ( radius <= 0.0 )
-            throw new ArgumentException( "Provided radius is not a positive double" );
+        if (double.IsNaN(radius) || double.IsInfinity(radius) || radius <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(radius), "Radius must be greater than zero.");
+        }
         _radius = radius;
     }
 
@@ -32,39 +35,56 @@ public class Circle : IFigure // тип фигуры определяется я
 
 public class Triangle : IFigure // тип фигуры определяется явно
 {
-    private readonly double _a, _b, _c;
+    public const string TriangleWithGivenSidesDoesntExist = "Triangle with given sides doesn't exist!";
+    public double SideA { get; }
+    public double SideB { get; }
+    public double SideC { get; }
     
-    public Triangle( double a, double b, double c )
+    // private readonly double _a, _b, _c;
+    
+    public Triangle(double sideA, double sideB, double sideC)
     {
-        if ( a <= 0 || b <= 0 || c <= 0 )
-            throw new ArgumentException( "Provided side length is not a positive double" );
-        if ( a + b < c || b + c < a || a + c < b )
-            throw new ArgumentException( "Provided sides do not form a triangle" );
-        _a = a;
-        _b = b;
-        _c = c;
+        if (sideA is <= 0 or double.NaN || double.IsInfinity(sideA)) 
+            throw new ArgumentOutOfRangeException(nameof(sideA));
+        if (sideB is <= 0 or double.NaN || double.IsInfinity(sideB)) 
+            throw new ArgumentOutOfRangeException(nameof(sideB));
+        if (sideC is <= 0 or double.NaN || double.IsInfinity(sideC)) 
+            throw new ArgumentOutOfRangeException(nameof(sideC));
+        
+        if (!Exists(sideA, sideB, sideC))
+        {
+            throw new ArgumentException(TriangleWithGivenSidesDoesntExist);
+        }
+
+        SideA = sideA;
+        SideB = sideB;
+        SideC = sideC;
+    }
+
+    public static bool Exists(double a, double b, double c)
+    {
+        return a + b > c && a + c > b && b + c > a;
     }
  
-    public bool IsRight( double eps = 1E-6 ) // Проверка на то, является ли треугольник прямоугольным
+    public bool IsRight() // Проверка на то, является ли треугольник прямоугольным
     {
-        double a2 = _a * _a;
-        double b2 = _b * _b;
-        double c2 = _c * _c;
-        return Math.Abs(a2 + b2 - c2) < eps || Math.Abs(b2+c2 - a2) < eps || Math.Abs(a2+c2 - b2) < eps;
+        double[] sides = { SideA, SideB, SideC };
+        Array.Sort(sides);
+        return Math.Abs(sides[2] * sides[2] - (sides[0] * sides[0] + sides[1] * sides[1])) < 0.0001;
     }
 
     public double GetArea()
     {
         // вычисление по формуле Герона происходит единообразно для всех видов треугольников
         // проверка на то, прямоугольный ли треугольник, не требуется
-        double p = (_a + _b + _c) / 2;
-        return Math.Sqrt(p * (p - _a) * (p - _b) * (p - _c));    
+        double s = (SideA + SideB + SideC) / 2;
+        return Math.Sqrt(s * (s - SideA) * (s - SideB) * (s - SideC));    
     }
 
     public double[] GetDimensions()
     {
-        return new[] { _a, _b, _c };
+        return new[] { SideA, SideB, SideC };
     }
     
-    public override string ToString() => $"Type: {GetType().Name}, Sides = {_a}, {_b}, {_c}";
+    public override string ToString() => $"Type: {GetType().Name}, Sides = {SideA}, {SideB}, {SideC}";
 }
