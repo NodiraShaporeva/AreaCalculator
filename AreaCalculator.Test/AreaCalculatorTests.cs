@@ -105,7 +105,7 @@ public class AreaCalculatorTests
     [InlineData(3, 4, 5, 6)]
     [InlineData(5, 12, 13, 30)]
     [InlineData(8, 15, 17, 60)]
-    public void Triangle_are_calculation_is_correct(
+    public void Triangle_calculation_is_correct(
         double sideA, double sideB, double sideC, double expectedArea)
     {
         var triangle = new Triangle(sideA, sideB, sideC);
@@ -124,16 +124,6 @@ public class AreaCalculatorTests
     {
         var triangle = new Triangle(sideA, sideB, sideC);
         triangle.IsRight().Should().Be(expected);
-    }
-    
-    
-    [Fact]
-    public void Canonical_triangle_area()
-    {
-        var triangle = new Triangle(3, 4, 5);
-        var area = triangle.GetArea();
-        
-        Assert.Equal(6, area);
     }
 
     [Fact]
